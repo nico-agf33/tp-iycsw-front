@@ -33,6 +33,8 @@ const formatDate = (dateStr: string) => {
   return d.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 }
 
+let toastTimeout: any;
+
 export function AvailabilityDashboard() {
   const [view, setView] = useState<'month' | 'week'>('month')
   const [cursor, setCursor] = useState(new Date()) 
@@ -70,7 +72,11 @@ export function AvailabilityDashboard() {
     notify(`${name} quedó ${enabled[name] ? 'deshabilitado' : 'habilitado'} para editar.`)
   }
 
-  function notify(message: string) { setToast(message); window.setTimeout(() => setToast(''), 4000) }
+  function notify(message: string) { 
+    setToast(message); 
+    clearTimeout(toastTimeout); // Cancelamos cualquier temporizador previo
+    toastTimeout = setTimeout(() => setToast(''), 4000); // Iniciamos uno nuevo
+  }
 
   const fetchCalendar = async () => {
     if (visibleDates.length === 0) return;
