@@ -10,14 +10,12 @@ describe('AgendaYA - Módulo Gestión de Disponibilidad', () => {
     /// arrange -> seleccionar día 10 del calendario actual
     cy.get('[data-cy="calendar-day-10"]').click()
     
-    // CORRECCIÓN: Como los días vacíos no llaman a la API, esperamos a que el panel cambie al día 10
     cy.get('.detail-header h2').should('contain.text', '10')
     
     /// act -> 1. Crear el intervalo vacío
     cy.get('[data-cy="add-interval-button"]').click()
     cy.wait('@creacionVacia') 
     
-    // Esperamos la confirmación visual de que React ya procesó la respuesta
     cy.get('[data-cy="notification"]').should('be.visible').and('contain.text', 'Intervalo añadido')
     
     /// act -> 2. Abrir el modal de edición y completar
