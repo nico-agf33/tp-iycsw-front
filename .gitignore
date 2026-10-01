@@ -1,3 +1,6 @@
 node_modules
 .next
 .vscode
+.env.local
+next.config.js
+next.config.mjs
