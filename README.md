@@ -1,3 +1,4 @@
+
 ## AgendaYA - Módulo 02: Gestión de Disponibilidad (Frontend & E2E)
 
 Frontend (Next.js) del módulo de Disponibilidad y pruebas End-to-End (Cypress) 
@@ -43,3 +44,4 @@ Desde una tercera terminal en la raíz de este proyecto:
   npm run cy:run
   \`\`\`
   *(Cypress grabará automáticamente un video `.mp4` de cada ejecución en la carpeta `cypress/videos/` para uso como evidencia de entrega).*
+  
