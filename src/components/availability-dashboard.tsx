@@ -12,8 +12,12 @@ interface IntervaloDTO { id: string; horaInicio: string | null; horaFin: string 
 interface DiaDetalleDTO { diaId: string; fecha: string; estado: DiaEstadoAPI; intervalos: IntervaloDTO[] }
 
 // --- Configuración ---
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5173/api'
-const USUARIO_ID = process.env.NEXT_PUBLIC_USUARIO_ID || 'admin-test'
+export const API_URL = process.env.NEXT_PUBLIC_API_URL 
+  ? process.env.NEXT_PUBLIC_API_URL 
+  : 'http://localhost:5173/api';
+export const USUARIO_ID = process.env.NEXT_PUBLIC_USUARIO_ID 
+  ? process.env.NEXT_PUBLIC_USUARIO_ID 
+  : 'admin-test';
 
 const weekdays = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 const shortDays = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM']
