@@ -69,7 +69,7 @@ jobs:
         with:
           start: npm run dev
           # espera a que Next.js (3000) y SvelteKit (5173) estén respondiendo
-          wait-on: 'http://localhost:3000, http-get://127.0.0.1:5173/api/disponibilidad?usuarioId=ping&desde=2026-01-01&hasta=2026-01-02'
+          wait-on: 'http://localhost:3000, http://127.0.0.1:5173/api/disponibilidad?usuarioId=ping&desde=2026-01-01&hasta=2026-01-02'
         env:
           NEXT_PUBLIC_API_URL: http://127.0.0.1:5173/api
           NEXT_PUBLIC_USUARIO_ID: "admin-test"
