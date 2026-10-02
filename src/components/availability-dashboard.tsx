@@ -398,8 +398,8 @@ export function AvailabilityDashboard() {
               <button data-cy="unblock-day-button" className="secondary-button full-button" onClick={() => toggleBlockDay(false)}><RotateCcw size={16} /> Desbloquear día</button>
             ) : (
               <>
-                {/* <button data-cy="add-interval-button" className="primary-button" onClick={createEmptyInterval}><Plus size={17} /> Añadir intervalo</button> */}
-                <button data-cy="add-interval-button" className="primary-button" onClick={() => { setEditing(null); setForm({ start: '', end: '', tipo: 'LABORAL' }); setModal('interval') }}><Plus size={17} /> Añadir intervalo</button> 
+                <button data-cy="add-interval-button" className="primary-button" onClick={createEmptyInterval}><Plus size={17} /> Añadir intervalo</button> 
+                {/* <button data-cy="add-interval-button" className="primary-button" onClick={() => { setEditing(null); setForm({ start: '', end: '', tipo: 'LABORAL' }); setModal('interval') }}><Plus size={17} /> Añadir intervalo</button> */}
                 <button data-cy="block-day-button" className="danger-button" onClick={() => toggleBlockDay(true)}><LockKeyhole size={16} /> Bloquear día seleccionado</button>
               </>
             )}
