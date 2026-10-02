@@ -294,8 +294,11 @@ export function AvailabilityDashboard() {
     })
   }
 
+  const selectedDateObj = asDate(selectedDate)
+  const selectedWeekdayName = weekdays[(selectedDateObj.getDay() + 6) % 7]
+  const isSelectedDayEnabled = enabled[selectedWeekdayName]
   const estadoUiClass = dayDetail?.estado === 'BLOQUEADO' ? 'blocked' : dayDetail?.estado === 'HORARIO_ASIGNADO' ? 'configured' : 'available'
-  const estadoLabel = dayDetail?.estado === 'BLOQUEADO' ? 'Bloqueado' : dayDetail?.estado === 'HORARIO_ASIGNADO' ? 'Configurado' : 'Sin asignar'
+  const estadoLabel = dayDetail?.estado === 'BLOQUEADO' ? 'Bloqueado' : dayDetail?.estado === 'HORARIO_ASIGNADO' ? 'Configurado' : 'Sin asignar'  
 
   return (
     <div className="app-shell">
@@ -359,7 +362,16 @@ export function AvailabilityDashboard() {
                   <span>Sin intervalos configurados</span>
                 </div>
               ) : (
-                dayDetail.intervalos.map((interval) => (
+                /// clonar el arreglo y ordenarlo por horaInicio
+                [...dayDetail.intervalos]
+                  .sort((a, b) => {
+                    /// si la hora es null, se pasa al final
+                    const horaA = a.horaInicio || '23:59';
+                    const horaB = b.horaInicio || '23:59';
+                    return horaA.localeCompare(horaB);
+                  })
+                  /// mapear el arreglo ordenado
+                  .map((interval) => (
                   <div className={`interval-card ${interval.tipo?.toLowerCase()}`} key={interval.id}>
                     <div className="interval-time">
                       <Clock3 size={16} />
@@ -378,7 +390,7 @@ export function AvailabilityDashboard() {
                             }); 
                             setModal('edit'); 
                           }} 
-                          disabled={dayDetail.estado === 'BLOQUEADO'}
+                          disabled={dayDetail.estado === 'BLOQUEADO' || !isSelectedDayEnabled}
                         >
                           <Pencil size={13} /> Editar
                         </button>
@@ -388,7 +400,7 @@ export function AvailabilityDashboard() {
                             setEditing(interval); 
                             setModal('delete'); 
                           }} 
-                          disabled={dayDetail.estado === 'BLOQUEADO'}
+                          disabled={dayDetail.estado === 'BLOQUEADO' || !isSelectedDayEnabled}
                         >
                           <Trash2 size={13} /> Eliminar
                         </button>
@@ -399,12 +411,12 @@ export function AvailabilityDashboard() {
             </div>
 
             {dayDetail?.estado === 'BLOQUEADO' ? (
-              <button data-cy="unblock-day-button" className="secondary-button full-button" onClick={() => toggleBlockDay(false)}><RotateCcw size={16} /> Desbloquear día</button>
+              <button data-cy="unblock-day-button" className="secondary-button full-button" onClick={() => toggleBlockDay(false)} disabled={!isSelectedDayEnabled}><RotateCcw size={16} /> Desbloquear día</button>
             ) : (
               <>
-                <button data-cy="add-interval-button" className="primary-button" onClick={createEmptyInterval}><Plus size={17} /> Añadir intervalo</button>
+                <button data-cy="add-interval-button" className="primary-button" onClick={createEmptyInterval} disabled={!isSelectedDayEnabled}><Plus size={17} /> Añadir intervalo</button>
                 {/* <button data-cy="add-interval-button" className="primary-button" onClick={() => { setEditing(null); setForm({ start: '', end: '', tipo: 'LABORAL' }); setModal('interval') }}><Plus size={17} /> Añadir intervalo</button>  */}
-                <button data-cy="block-day-button" className="danger-button" onClick={() => toggleBlockDay(true)}><LockKeyhole size={16} /> Bloquear día seleccionado</button>
+                <button data-cy="block-day-button" className="danger-button" onClick={() => toggleBlockDay(true)} disabled={!isSelectedDayEnabled}><LockKeyhole size={16} /> Bloquear día seleccionado</button>
               </>
             )}
           </aside>
