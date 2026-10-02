@@ -362,7 +362,16 @@ export function AvailabilityDashboard() {
                   <span>Sin intervalos configurados</span>
                 </div>
               ) : (
-                dayDetail.intervalos.map((interval) => (
+                /// clonar el arreglo y ordenarlo por horaInicio
+                [...dayDetail.intervalos]
+                  .sort((a, b) => {
+                    // Si por algún motivo la hora es null (ej. recién creado), lo enviamos al final
+                    const horaA = a.horaInicio || '23:59';
+                    const horaB = b.horaInicio || '23:59';
+                    return horaA.localeCompare(horaB);
+                  })
+                  /// mapear el arreglo ordenado
+                  .map((interval) => (
                   <div className={`interval-card ${interval.tipo?.toLowerCase()}`} key={interval.id}>
                     <div className="interval-time">
                       <Clock3 size={16} />
