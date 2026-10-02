@@ -81,7 +81,12 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
     steps:
       - uses: actions/checkout@v4
-      - run: npm ci && npm run build
+      
+      - name: Install and Build (Dev)
+        run: npm ci && npm run build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL_DEV }}
+          NEXT_PUBLIC_USUARIO_ID: ${{ secrets.NEXT_PUBLIC_USUARIO_ID_DEV }}
       
       - name: Deploy a Firebase Hosting (Dev)
         uses: FirebaseExtended/action-hosting-deploy@v0
@@ -89,7 +94,7 @@ jobs:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_AGENDAYA_FRONT }}'
           projectId: 'agendaya-front'
-          channelId: 'live'
+          channelId: 'dev'
 
   deploy-prod:
     name: Deploy a Firebase (Prod)
@@ -100,7 +105,12 @@ jobs:
       name: production # bloquea el pipeline en GitHub hasta que alguien presione "Approve"
     steps:
       - uses: actions/checkout@v4
-      - run: npm ci && npm run build
+      
+      - name: Install and Build (Prod)
+        run: npm ci && npm run build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL_PROD }}
+          NEXT_PUBLIC_USUARIO_ID: ${{ secrets.NEXT_PUBLIC_USUARIO_ID_PROD }}
       
       - name: Deploy a Firebase Hosting (Prod)
         uses: FirebaseExtended/action-hosting-deploy@v0
