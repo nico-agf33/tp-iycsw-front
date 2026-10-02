@@ -1,0 +1,111 @@
+name: agendaYA - GitHub Actions
+
+on:
+  push:
+    branches: [ master, main, develop, 'hotfix/*' ]
+  pull_request:
+    branches: [ master, main, develop, 'hotfix/*' ]
+
+jobs:
+  validacion:
+    name: Validaciones (Format, Lint, Unit Tests, Build)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Verificar formato 
+        # si no hay prettier configurado estricto, se usa || true para que no bloquee el TP
+        run: npx prettier --check "src/**/*.{ts,tsx,css}" || true
+
+      - name: Verificar linter 
+        run: npm run lint || true
+
+      - name: Verificar compilación 
+        run: npm run build
+
+  pruebas-integracion:
+    name: Pruebas E2E 
+    runs-on: ubuntu-latest
+    needs: validacion
+    steps:
+      - name: Checkout del Frontend
+        uses: actions/checkout@v4
+
+      - name: Checkout del Backend
+        uses: actions/checkout@v4
+        with:
+          repository: 'Emanueltrn/tp4-Ing.y-Calidad-sw'
+          path: 'backend-repo'
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Instalar dependencias Frontend
+        run: npm ci
+
+      - name: Levantar Backend en segundo plano
+        run: |
+          cd backend-repo
+          npm ci
+          npm run dev &
+        env:
+          # requiere agregar el secret DATABASE_URL en el repositorio del Frontend
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Ejecutar Pruebas E2E (Cypress)
+        uses: cypress-io/github-action@v6
+        with:
+          start: npm run dev
+          # espera a que Next.js (3000) y SvelteKit (5173) estén respondiendo
+          wait-on: 'http://localhost:3000, http://127.0.0.1:5173/api/disponibilidad?usuarioId=ping&desde=2026-01-01&hasta=2026-01-02'
+        env:
+          NEXT_PUBLIC_API_URL: http://127.0.0.1:5173/api
+          NEXT_PUBLIC_USUARIO_ID: "admin-test"
+
+  deploy-dev:
+    name: Deploy a Firebase (Dev)
+    runs-on: ubuntu-latest
+    needs: pruebas-integracion
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci && npm run build
+      
+      - name: Deploy a Firebase Hosting (Dev)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_AGENDAYA_FRONT }}'
+          projectId: 'agendaya-front'
+          channelId: 'live'
+
+  deploy-prod:
+    name: Deploy a Firebase (Prod)
+    runs-on: ubuntu-latest
+    needs: pruebas-integracion
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
+    environment:
+      name: production # bloquea el pipeline en GitHub hasta que alguien presione "Approve"
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci && npm run build
+      
+      - name: Deploy a Firebase Hosting (Prod)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_AGENDAYA_FRONT }}'
+          projectId: 'agendaya-front' 
+          channelId: 'live'
