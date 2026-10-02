@@ -1,4 +1,4 @@
-name: Frontend CI/CD Pipeline
+name: agendaYA - GitHub Actions
 
 on:
   push:
