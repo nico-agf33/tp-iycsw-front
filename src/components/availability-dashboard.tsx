@@ -365,7 +365,7 @@ export function AvailabilityDashboard() {
                 /// clonar el arreglo y ordenarlo por horaInicio
                 [...dayDetail.intervalos]
                   .sort((a, b) => {
-                    // Si por algún motivo la hora es null (ej. recién creado), lo enviamos al final
+                    /// si la hora es null, se pasa al final
                     const horaA = a.horaInicio || '23:59';
                     const horaB = b.horaInicio || '23:59';
                     return horaA.localeCompare(horaB);
