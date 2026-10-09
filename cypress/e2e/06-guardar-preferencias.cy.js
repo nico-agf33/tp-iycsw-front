@@ -20,6 +20,6 @@ describe('AgendaYA - Módulo Gestión de Disponibilidad', () => {
     /// assert -> verificar el mensaje de éxito en la UI
     cy.get('[data-cy="notification"]')
       .should('be.visible')
-      .and('contain.text', 'Preferencias guardadas correctamente')
+      .and('contain.text', 'Configuración y preferencias guardadas correctamente.')
   })
 })

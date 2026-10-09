@@ -2,3 +2,8 @@ node_modules
 .next
 .vscode
 .env.local
+
+# Cypress artifacts & config
+cypress/videos/
+cypress/screenshots/
+cypress/support/

@@ -73,7 +73,6 @@ export function AvailabilityDashboard() {
 
   const toggleWeekday = (name: string) => {
     setEnabled((current) => ({ ...current, [name]: !current[name] }))
-    notify(`${name} quedó ${enabled[name] ? 'deshabilitado' : 'habilitado'} para editar.`)
   }
 
   function notify(message: string) { 
@@ -113,17 +112,32 @@ export function AvailabilityDashboard() {
 
   const fetchPreferences = async () => {
     try {
+      /// antelación
       const resAnt = await fetch(`${API_URL}/preferencias/reuniones/antelacion-minima?usuarioId=${USUARIO_ID}`)
       if (resAnt.ok) {
         const data = await resAnt.json()
         if (data.valor) { setLead(data.valor.toString()); setUnit(data.unidad) }
       }
+      
+      /// límite Diario
       const resLim = await fetch(`${API_URL}/preferencias/reuniones/limite-reservas-diarias?usuarioId=${USUARIO_ID}`)
       if (resLim.ok) {
         const data = await resLim.json()
         if (data.cantidad) setLimit(data.cantidad.toString())
       }
-    } catch (e) {}
+
+      /// días Habilitados
+      const resDias = await fetch(`${API_URL}/preferencias/dias-habilitados?usuarioId=${USUARIO_ID}`)
+      if (resDias.ok) {
+        const data = await resDias.json()
+        // Verificamos que no esté vacío y no sea un error antes de pisar el estado
+        if (data && !data.error && Object.keys(data).length > 0) {
+          setEnabled(data)
+        }
+      }
+    } catch (e) {
+      console.error("Error al cargar preferencias", e)
+    }
   }
 
   useEffect(() => { fetchCalendar() }, [visibleDates])
@@ -228,25 +242,33 @@ export function AvailabilityDashboard() {
     }
   }
 
-  const savePreferences = async (event: React.SyntheticEvent<HTMLFormElement>) => {    event.preventDefault()
+  const savePreferences = async (event: React.SyntheticEvent<HTMLFormElement>) => {
+    event.preventDefault()
     
     if (Number(lead) <= 0 || Number(limit) <= 0) {
       return notify('Ingrese un valor numérico entero mayor a cero.')
     }
 
     try {
+      /// PUT antelación
       await fetch(`${API_URL}/preferencias/reuniones/antelacion-minima?usuarioId=${USUARIO_ID}`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ valor: Number(lead), unidad: unit })
       })
+      
+      /// PUT límite
       const resLim = await fetch(`${API_URL}/preferencias/reuniones/limite-reservas-diarias?usuarioId=${USUARIO_ID}`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cantidad: Number(limit) })
       })
 
-      if (resLim.ok) {
-        notify('Preferencias guardadas correctamente.')
+      /// PUT días Habilitados
+      const resDias = await fetch(`${API_URL}/preferencias/dias-habilitados?usuarioId=${USUARIO_ID}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(enabled)
+      })
+
+      if (resLim.ok && resDias.ok) {
+        notify('Configuración y preferencias guardadas correctamente.')
       } else {
-        const err = await resLim.json()
-        notify(err.error || 'Error al guardar preferencias.')
+        notify('Error al guardar preferencias.')
       }
     } catch (e) {
       console.error(e)
@@ -422,44 +444,54 @@ export function AvailabilityDashboard() {
           </aside>
         </section>
 
-        <section className="bottom-grid">
-          <div className="info-card">
+        <section style={{ marginTop: '16px' }}>
+          <form className="info-card preferences" onSubmit={savePreferences}>
+            
             <div className="section-title">
               <Settings2 size={18} />
               <div>
-                <h2>Configuración semanal</h2>
-                <p>Habilitado = permite editar intervalos en las fechas futuras de ese día.</p>
+                <h2>Configuración General y Preferencias</h2>
+                <p>Definí qué días de la semana están habilitados y las reglas para nuevas reservas.</p>
               </div>
             </div>
-            <div className="toggles">
-              {weekdays.map((day) => (
-                <label 
-                  key={day} 
-                  className="toggle-row" 
-                  style={{ justifyContent: 'flex-start', gap: '12px' }}
-                >
-                  <span style={{ width: '70px' }}>{day}</span>
-                  <input data-cy={`toggle-${day.toLowerCase()}`} type="checkbox" checked={enabled[day]} onChange={() => toggleWeekday(day)} />
-                  <i />
+
+            {/* Reutilizamos bottom-grid para crear las dos columnas dentro de la tarjeta */}
+            <div className="bottom-grid" style={{ marginTop: '16px' }}>
+              
+              {/* Columna Izquierda: Toggles de Días */}
+              <div className="toggles">
+                {weekdays.map((day) => (
+                  <label 
+                    key={day} 
+                    className="toggle-row" 
+                    style={{ justifyContent: 'flex-start', gap: '12px' }}
+                  >
+                    <span style={{ width: '70px' }}>{day}</span>
+                    <input data-cy={`toggle-${day.toLowerCase()}`} type="checkbox" checked={enabled[day]} onChange={() => toggleWeekday(day)} />
+                    <i />
+                  </label>
+                ))}
+              </div>
+
+              {/* Columna Derecha: Antelación y Límite */}
+              <div>
+                <label>Antelación mínima
+                  <select data-cy="lead-time-unit" value={unit} onChange={(e) => setUnit(e.target.value)}>
+                    <option value="HORAS">Horas</option><option value="DIAS">Días</option>
+                  </select>
+                  <input data-cy="lead-time-input" type="text" value={lead} onChange={(e) => setLead(e.target.value)} />
                 </label>
-              ))}
+                
+                <label>Límite de reservas diarias
+                  <input data-cy="daily-limit-input" type="text" value={limit} onChange={(e) => setLimit(e.target.value)} />
+                </label>
+                
+                <button data-cy="save-preferences-button" className="secondary-button" type="submit" style={{ width: '100%', marginTop: '24px' }}>
+                  <Save size={16} /> Guardar configuración
+                </button>
+              </div>
+
             </div>
-          </div>
-          <form className="info-card preferences" onSubmit={savePreferences}>
-            <div className="section-title">
-              <Clock3 size={18} />
-              <div><h2>Preferencias de reuniones</h2></div>
-            </div>
-            <label>Antelación mínima
-              <select data-cy="lead-time-unit" value={unit} onChange={(e) => setUnit(e.target.value)}>
-                <option value="HORAS">Horas</option><option value="DIAS">Días</option>
-              </select>
-              <input data-cy="lead-time-input" type="text" value={lead} onChange={(e) => setLead(e.target.value)} />
-            </label>
-            <label>Límite de reservas diarias
-              <input data-cy="daily-limit-input" type="text" value={limit} onChange={(e) => setLimit(e.target.value)} />
-            </label>
-            <button data-cy="save-preferences-button" className="secondary-button" type="submit"><Save size={16} /> Guardar preferencias</button>
           </form>
         </section>
       </main>
